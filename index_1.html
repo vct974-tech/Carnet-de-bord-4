@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Carnet de bord terrain</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
+<style>
+  :root {
+    --bg: #FAFAF8;
+    --surface: #FFFFFF;
+    --surface-2: #F1EFE8;
+    --text: #1A1A18;
+    --text-secondary: #5F5E5A;
+    --text-tertiary: #888780;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.18);
+    --accent: #185FA5;
+    --accent-bg: #E6F1FB;
+    --accent-text: #0C447C;
+    --urgent: #A32D2D;
+    --urgent-bg: #FCEBEB;
+    --important: #854F0B;
+    --important-bg: #FAEEDA;
+    --success: #3B6D11;
+    --success-bg: #EAF3DE;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1C1C1A;
+      --surface: #262624;
+      --surface-2: #2F2F2C;
+      --text: #F1EFE8;
+      --text-secondary: #B4B2A9;
+      --text-tertiary: #888780;
+      --border: rgba(255,255,255,0.1);
+      --border-strong: rgba(255,255,255,0.18);
+      --accent: #85B7EB;
+      --accent-bg: #0C447C;
+      --accent-text: #E6F1FB;
+      --urgent: #F09595;
+      --urgent-bg: #501313;
+      --important: #FAC775;
+      --important-bg: #412402;
+      --success: #97C459;
+      --success-bg: #173404;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 1rem 1rem 4rem;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    padding-top: 0.5rem;
+  }
+  h1 {
+    font-size: 19px;
+    font-weight: 500;
+    margin: 0;
+  }
+  .header-sub {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin: 2px 0 0;
+  }
+  .icon-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 6px;
+    display: flex;
+    border-radius: var(--radius-md);
+  }
+  .icon-btn:active { background: var(--surface-2); }
+
+  .stats {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+  .stat-card {
+    flex: 1;
+    border-radius: var(--radius-md);
+    padding: 0.8rem 0.9rem;
+  }
+  .stat-card.neutral { background: var(--surface-2); }
+  .stat-card.urgent { background: var(--urgent-bg); }
+  .stat-label {
+    font-size: 12px;
+    margin: 0 0 4px;
+    color: var(--text-secondary);
+  }
+  .stat-card.urgent .stat-label { color: var(--urgent); }
+  .stat-value {
+    font-size: 23px;
+    font-weight: 500;
+    margin: 0;
+  }
+  .stat-card.urgent .stat-value { color: var(--urgent); }
+
+  .panel {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+  .panel-title {
+    font-weight: 500;
+    font-size: 15px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-body { margin-top: 12px; }
+
+  .chip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .chip-row {
+    display: flex;
+    gap: 4px;
+  }
+  .chip {
+    flex: 1;
+    padding: 7px 8px;
+    font-size: 12.5px;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .chip.active {
+    background: var(--surface-2);
+    border-color: var(--border-strong);
+    font-weight: 500;
+  }
+  .field-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0 0 6px;
+  }
+  .field-block { margin-bottom: 12px; }
+
+  textarea, input[type=text] {
+    width: 100%;
+    resize: vertical;
+    padding: 9px 40px 9px 10px;
+    font-size: 14px;
+    font-family: inherit;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+  }
+  textarea:focus, input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+  .input-wrap {
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .mic-btn {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 0.5px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    padding: 0;
+  }
+  .mic-btn.listening {
+    background: var(--urgent-bg);
+    color: var(--urgent);
+    border-color: transparent;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  .mic-btn:disabled {
+    opacity: 0.35;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--urgent) 35%, transparent); }
+    50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--urgent) 0%, transparent); }
+  }
+  .mic-hint {
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+    margin: -6px 0 12px;
+    display: none;
+  }
+  .mic-hint.show { display: block; }
+
+  .btn-primary {
+    width: 100%;
+    padding: 11px;
+    font-size: 14.5px;
+    font-weight: 500;
+    background: var(--accent-bg);
+    color: var(--accent-text);
+    border: none;
+    border-radius: var(--radius-md);
+  }
+  .btn-primary:active { opacity: 0.8; }
+
+  .filters {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .filter-btn {
+    flex: 1;
+    padding: 7px 6px;
+    font-size: 12.5px;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text);
+  }
+  .filter-btn.active {
+    background: var(--surface-2);
+    border-color: var(--border-strong);
+    font-weight: 500;
+  }
+
+  .empty {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    text-align: center;
+    padding: 2.5rem 0;
+  }
+
+  .item {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 0.7rem 0.85rem;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .item.done { opacity: 0.5; }
+  .item-left {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .check-btn {
+    width: 21px; height: 21px; min-width: 21px;
+    border-radius: 50%;
+    border: 0.5px solid var(--border-strong);
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0; margin-top: 2px;
+    font-size: 12px;
+    color: var(--success);
+  }
+  .check-btn.checked {
+    background: var(--success-bg);
+    border: none;
+  }
+  .item-content { flex: 1; min-width: 0; }
+  .item-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+  .type-badge {
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-secondary);
+  }
+  .item-time {
+    font-size: 10.5px;
+    color: var(--text-tertiary);
+  }
+  .item-text {
+    font-size: 13.5px;
+    margin: 0;
+    word-break: break-word;
+    line-height: 1.4;
+  }
+  .item.done .item-text { text-decoration: line-through; }
+  .item-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+  .tier-badge {
+    font-size: 10.5px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+  }
+  .tier-urgent { background: var(--urgent-bg); color: var(--urgent); }
+  .tier-important { background: var(--important-bg); color: var(--important); }
+  .tier-standard { background: var(--surface-2); color: var(--text-secondary); }
+  .del-btn {
+    border: none;
+    background: transparent;
+    padding: 2px;
+    color: var(--text-tertiary);
+    font-size: 15px;
+    display: flex;
+  }
+
+  .export-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+  .export-bar button {
+    flex: 1;
+    padding: 9px;
+    font-size: 13px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text);
+    color: var(--bg);
+    padding: 10px 18px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 50;
+  }
+  .toast.show { opacity: 1; }
+
+  ::-webkit-scrollbar { width: 0; height: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>Carnet de bord terrain</h1>
+      <p class="header-sub" id="dateLabel"></p>
+    </div>
+    <button class="icon-btn" id="clearDoneBtn" aria-label="Nettoyer les éléments saisis" title="Effacer les éléments déjà saisis">
+      <i class="ti ti-broom" style="font-size:19px"></i>
+    </button>
+  </header>
+
+  <div class="stats">
+    <div class="stat-card neutral">
+      <p class="stat-label">À saisir dans HubSpot</p>
+      <p class="stat-value" id="pendingCount">0</p>
+    </div>
+    <div class="stat-card urgent">
+      <p class="stat-label">Urgent</p>
+      <p class="stat-value" id="urgentCount">0</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head" id="panelHead">
+      <p class="panel-title"><i class="ti ti-bolt" style="font-size:18px"></i>Capture rapide</p>
+      <i class="ti ti-chevron-up" id="panelChevron" style="font-size:18px;color:var(--text-secondary)"></i>
+    </div>
+    <div class="panel-body" id="panelBody">
+      <div class="chip-grid" id="typeChips"></div>
+
+      <div class="input-wrap">
+        <textarea id="labelInput" rows="2" placeholder="Ex : M. Dupont, rappel pour valider le dossier FIP avant vendredi"></textarea>
+        <button class="mic-btn" id="micBtn" type="button" aria-label="Dicter la note">
+          <i class="ti ti-microphone"></i>
+        </button>
+      </div>
+      <p class="mic-hint" id="micHint">Écoute en cours, parlez maintenant…</p>
+
+      <div class="field-block">
+        <p class="field-label">Urgence</p>
+        <div class="chip-row" id="urgenceChips"></div>
+      </div>
+
+      <div class="field-block">
+        <p class="field-label">Enjeu dossier</p>
+        <div class="chip-row" id="enjeuChips"></div>
+      </div>
+
+      <div class="field-block">
+        <p class="field-label">Type de contact</p>
+        <div class="chip-row" id="contactChips"></div>
+      </div>
+
+      <button class="btn-primary" id="addBtn">Ajouter à la liste</button>
+    </div>
+  </div>
+
+  <div class="export-bar">
+    <button id="exportBtn"><i class="ti ti-clipboard-text" style="font-size:16px"></i>Copier le récap du jour</button>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">Toutes</button>
+    <button class="filter-btn" data-filter="pending">À saisir</button>
+    <button class="filter-btn" data-filter="done">Saisies</button>
+  </div>
+
+  <div id="list"></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TYPES = [
+  { key: 'relance', label: 'Relance', icon: 'ti-phone-outgoing' },
+  { key: 'nouveau', label: 'Nouveau contact', icon: 'ti-user-plus' },
+  { key: 'rdv', label: 'Compte-rendu RDV', icon: 'ti-map-pin' },
+  { key: 'deal', label: 'Avancement deal', icon: 'ti-briefcase' },
+  { key: 'note', label: 'Note simple', icon: 'ti-note' },
+];
+const URGENCES = [
+  { key: 1, label: 'Cette semaine' },
+  { key: 2, label: 'Demain' },
+  { key: 3, label: "Aujourd'hui" },
+];
+const ENJEUX = [
+  { key: 1, label: 'Faible' },
+  { key: 2, label: 'Moyen' },
+  { key: 3, label: 'Fort' },
+];
+const CONTACTS = [
+  { key: 1, label: 'Client existant' },
+  { key: 2, label: 'Prospect en cours' },
+  { key: 3, label: 'Prospect chaud' },
+];
+
+const STORAGE_KEY = 'carnet_de_bord_items_v1';
+
+let state = {
+  items: [],
+  form: { type: 'relance', urgence: 2, enjeu: 2, contact: 1 },
+  filter: 'all',
+  panelOpen: true,
+};
+
+function loadItems() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state.items = JSON.parse(raw);
+  } catch (e) {
+    console.error('Lecture impossible', e);
+  }
+}
+
+function saveItems() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
+  } catch (e) {
+    showToast('Sauvegarde impossible sur cet appareil');
+  }
+}
+
+function priorityScore(item) {
+  return item.urgence * 3 + item.enjeu * 2 + item.contact * 1.5;
+}
+
+function priorityTier(score) {
+  if (score >= 16) return { label: 'Urgent', cls: 'tier-urgent' };
+  if (score >= 10) return { label: 'Important', cls: 'tier-important' };
+  return { label: 'Standard', cls: 'tier-standard' };
+}
+
+function typeInfo(key) {
+  return TYPES.find(t => t.key === key) || TYPES[4];
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function renderDate() {
+  const now = new Date();
+  const opts = { weekday: 'long', day: 'numeric', month: 'long' };
+  document.getElementById('dateLabel').textContent = now.toLocaleDateString('fr-FR', opts);
+}
+
+function renderChips(containerId, options, currentValue, onSelect, layout) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  el.className = layout === 'grid' ? 'chip-grid' : 'chip-row';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (opt.key === currentValue ? ' active' : '');
+    if (opt.icon) {
+      btn.innerHTML = '<i class="ti ' + opt.icon + '" style="font-size:14px"></i>' + opt.label;
+    } else {
+      btn.textContent = opt.label;
+    }
+    btn.addEventListener('click', () => onSelect(opt.key));
+    el.appendChild(btn);
+  });
+}
+
+function renderForm() {
+  renderChips('typeChips', TYPES, state.form.type, (val) => {
+    state.form.type = val;
+    renderForm();
+  }, 'grid');
+  renderChips('urgenceChips', URGENCES, state.form.urgence, (val) => {
+    state.form.urgence = val;
+    renderForm();
+  });
+  renderChips('enjeuChips', ENJEUX, state.form.enjeu, (val) => {
+    state.form.enjeu = val;
+    renderForm();
+  });
+  renderChips('contactChips', CONTACTS, state.form.contact, (val) => {
+    state.form.contact = val;
+    renderForm();
+  });
+}
+
+function renderStats() {
+  const pending = state.items.filter(i => !i.done).length;
+  const urgent = state.items.filter(i => !i.done && priorityTier(priorityScore(i)).label === 'Urgent').length;
+  document.getElementById('pendingCount').textContent = pending;
+  document.getElementById('urgentCount').textContent = urgent;
+}
+
+function getFiltered() {
+  const sorted = [...state.items].sort((a, b) => priorityScore(b) - priorityScore(a));
+  if (state.filter === 'pending') return sorted.filter(i => !i.done);
+  if (state.filter === 'done') return sorted.filter(i => i.done);
+  return sorted;
+}
+
+function renderList() {
+  const list = document.getElementById('list');
+  const filtered = getFiltered();
+  list.innerHTML = '';
+
+  if (filtered.length === 0) {
+    const p = document.createElement('p');
+    p.className = 'empty';
+    p.textContent = 'Rien ici pour le moment. Ajoutez votre premier échange ci-dessus.';
+    list.appendChild(p);
+    return;
+  }
+
+  filtered.forEach(item => {
+    const t = typeInfo(item.type);
+    const tier = priorityTier(priorityScore(item));
+
+    const div = document.createElement('div');
+    div.className = 'item' + (item.done ? ' done' : '');
+
+    const left = document.createElement('div');
+    left.className = 'item-left';
+
+    const check = document.createElement('button');
+    check.className = 'check-btn' + (item.done ? ' checked' : '');
+    check.setAttribute('aria-label', item.done ? 'Marquer non saisi' : 'Marquer saisi');
+    check.innerHTML = item.done ? '<i class="ti ti-check"></i>' : '';
+    check.addEventListener('click', () => {
+      item.done = !item.done;
+      saveItems();
+      renderAll();
+    });
+
+    const content = document.createElement('div');
+    content.className = 'item-content';
+
+    const meta = document.createElement('div');
+    meta.className = 'item-meta';
+    const badge = document.createElement('span');
+    badge.className = 'type-badge';
+    badge.innerHTML = '<i class="ti ' + t.icon + '" style="font-size:12px"></i>' + t.label;
+    const time = document.createElement('span');
+    time.className = 'item-time';
+    time.textContent = item.time;
+    meta.appendChild(badge);
+    meta.appendChild(time);
+
+    const text = document.createElement('p');
+    text.className = 'item-text';
+    text.textContent = item.label;
+
+    content.appendChild(meta);
+    content.appendChild(text);
+
+    left.appendChild(check);
+    left.appendChild(content);
+
+    const right = document.createElement('div');
+    right.className = 'item-right';
+    const tierBadge = document.createElement('span');
+    tierBadge.className = 'tier-badge ' + tier.cls;
+    tierBadge.textContent = tier.label;
+    const delBtn = document.createElement('button');
+    delBtn.className = 'del-btn';
+    delBtn.setAttribute('aria-label', 'Supprimer');
+    delBtn.innerHTML = '<i class="ti ti-trash"></i>';
+    delBtn.addEventListener('click', () => {
+      state.items = state.items.filter(i => i.id !== item.id);
+      saveItems();
+      renderAll();
+    });
+    right.appendChild(tierBadge);
+    right.appendChild(delBtn);
+
+    div.appendChild(left);
+    div.appendChild(right);
+    list.appendChild(div);
+  });
+}
+
+function renderAll() {
+  renderStats();
+  renderList();
+}
+
+function addItem() {
+  const labelInput = document.getElementById('labelInput');
+  const text = labelInput.value.trim();
+  if (!text) {
+    labelInput.focus();
+    return;
+  }
+  const now = new Date();
+  state.items.push({
+    id: Date.now(),
+    type: state.form.type,
+    label: text,
+    urgence: state.form.urgence,
+    enjeu: state.form.enjeu,
+    contact: state.form.contact,
+    done: false,
+    time: now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+  });
+  saveItems();
+  labelInput.value = '';
+  showToast('Ajouté à la liste');
+  renderAll();
+}
+
+function exportRecap() {
+  const pending = state.items.filter(i => !i.done).sort((a, b) => priorityScore(b) - priorityScore(a));
+  if (pending.length === 0) {
+    showToast('Rien à exporter pour le moment');
+    return;
+  }
+  const lines = pending.map(item => {
+    const t = typeInfo(item.type);
+    const tier = priorityTier(priorityScore(item));
+    return '[' + tier.label + '] ' + t.label + ' (' + item.time + ') — ' + item.label;
+  });
+  const text = lines.join('\n');
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('Récap copié, prêt à coller dans HubSpot');
+    }).catch(() => {
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('Récap copié, prêt à coller dans HubSpot');
+  } catch (e) {
+    showToast('Copie impossible sur ce navigateur');
+  }
+  document.body.removeChild(ta);
+}
+
+document.getElementById('addBtn').addEventListener('click', addItem);
+document.getElementById('exportBtn').addEventListener('click', exportRecap);
+
+function setupSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const micBtn = document.getElementById('micBtn');
+  const micHint = document.getElementById('micHint');
+  const labelInput = document.getElementById('labelInput');
+
+  if (!SpeechRecognition) {
+    micBtn.disabled = true;
+    micBtn.setAttribute('aria-label', 'Dictée non disponible sur ce navigateur');
+    micBtn.title = 'Dictée vocale non disponible sur ce navigateur';
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'fr-FR';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  let listening = false;
+  let baseText = '';
+
+  recognition.addEventListener('start', () => {
+    listening = true;
+    baseText = labelInput.value ? labelInput.value.trim() + ' ' : '';
+    micBtn.classList.add('listening');
+    micBtn.innerHTML = '<i class="ti ti-player-stop"></i>';
+    micHint.classList.add('show');
+  });
+
+  recognition.addEventListener('result', (event) => {
+    // On reconstruit l'intégralité du texte à chaque événement à partir de
+    // event.results (et non par accumulation indexée), car certains
+    // navigateurs mobiles renvoient des index instables ou redémarrent la
+    // liste de résultats, ce qui provoquait le doublon de texte.
+    let finalText = '';
+    let interim = '';
+    for (let i = 0; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        finalText += transcript.trim() + ' ';
+      } else {
+        interim += transcript;
+      }
+    }
+    labelInput.value = (baseText + finalText + interim).trim();
+  });
+
+  recognition.addEventListener('error', (event) => {
+    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      showToast('Accès au micro refusé, vérifiez les autorisations');
+    } else if (event.error === 'no-speech') {
+      showToast('Aucune parole détectée');
+    } else {
+      showToast('Dictée interrompue');
+    }
+  });
+
+  recognition.addEventListener('end', () => {
+    listening = false;
+    micBtn.classList.remove('listening');
+    micBtn.innerHTML = '<i class="ti ti-microphone"></i>';
+    micHint.classList.remove('show');
+  });
+
+  micBtn.addEventListener('click', () => {
+    if (listening) {
+      recognition.stop();
+    } else {
+      try {
+        recognition.start();
+      } catch (e) {
+        showToast('Impossible de démarrer la dictée');
+      }
+    }
+  });
+}
+
+setupSpeechRecognition();
+
+document.getElementById('panelHead').addEventListener('click', () => {
+  state.panelOpen = !state.panelOpen;
+  document.getElementById('panelBody').style.display = state.panelOpen ? 'block' : 'none';
+  document.getElementById('panelChevron').className = 'ti ' + (state.panelOpen ? 'ti-chevron-up' : 'ti-chevron-down');
+});
+
+document.getElementById('clearDoneBtn').addEventListener('click', () => {
+  const doneCount = state.items.filter(i => i.done).length;
+  if (doneCount === 0) {
+    showToast('Aucun élément saisi à effacer');
+    return;
+  }
+  state.items = state.items.filter(i => !i.done);
+  saveItems();
+  showToast(doneCount + ' élément(s) effacé(s)');
+  renderAll();
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.filter = btn.dataset.filter;
+    renderList();
+  });
+});
+
+document.getElementById('labelInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    addItem();
+  }
+});
+
+loadItems();
+renderDate();
+renderForm();
+renderAll();
+</script>
+</body>
+</html>
